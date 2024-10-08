@@ -44,3 +44,17 @@ variable "max_size" {
 variable "min_size" {
   default = 1
 }
+
+variable "db_name" {
+  default = "mydatabase"
+}
+
+variable "db_username" {
+  default = "admin"
+}
+
+variable "db_password" {
+  description = "The password for the RDS instance"
+  type        = string
+  sensitive   = true
+}

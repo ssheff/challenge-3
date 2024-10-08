@@ -216,3 +216,59 @@ data "aws_ami" "amazon_linux" {
     values = ["amzn2-ami-hvm-*-x86_64-gp2"]
   }
 }
+
+resource "aws_db_instance" "my_rds_instance" {
+  allocated_storage    = 20                        # Adjust based on your requirements
+  engine               = "mysql"                   # Use "postgres" for PostgreSQL
+  engine_version       = "8.0.23"                  # Adjust based on your DB engine
+  instance_class       = "db.t3.micro"             # Adjust to your needs
+  identifier           = "my-db-instance"
+  username             = var.db_username
+  password             = var.db_password
+  parameter_group_name = "default.mysql8.0"        # Parameter group for MySQL 8.0
+  skip_final_snapshot  = true                      # To skip snapshot on deletion
+  publicly_accessible  = false                     # Ensure it's not publicly accessible
+
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]  # Security group for RDS
+
+  db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name  # Subnets for RDS
+
+  # Define maintenance and backup windows as needed
+  backup_retention_period = 7                    # Retain backups for 7 days
+  backup_window           = "03:00-04:00"        # Adjust based on your needs
+  maintenance_window      = "sun:04:00-sun:05:00"  # Define maintenance window
+}
+
+resource "aws_db_subnet_group" "rds_subnet_group" {
+  name       = "my-rds-subnet-group"
+  subnet_ids = [aws_subnet.private_1.id, aws_subnet.private_2.id]  # Your private subnets
+
+  tags = {
+    Name = "my-rds-subnet-group"
+  }
+}
+
+resource "aws_security_group" "rds_sg" {
+  name        = "rds-security-group"
+  description = "Allow EC2 instances to access RDS"
+
+  vpc_id = aws_vpc.main.id   # The VPC where the RDS and EC2 instances are located
+
+  ingress {
+    from_port   = 3306        # Port for MySQL, use 5432 for PostgreSQL
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups = [aws_security_group.web_sg.id]  # Allow traffic from EC2 security group
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]  # Allow all outbound traffic (or restrict as needed)
+  }
+
+  tags = {
+    Name = "rds-security-group"
+  }
+}
