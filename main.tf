@@ -220,7 +220,7 @@ data "aws_ami" "amazon_linux" {
 resource "aws_db_instance" "my_rds_instance" {
   allocated_storage    = 20                        # Adjust based on your requirements
   engine               = "mysql"                   # Use "postgres" for PostgreSQL
-  engine_version       = "8.0.23"                  # Adjust based on your DB engine
+  engine_version       = "8.0.39"                  # Adjust based on your DB engine
   instance_class       = "db.t3.micro"             # Adjust to your needs
   identifier           = "my-db-instance"
   username             = var.db_username
